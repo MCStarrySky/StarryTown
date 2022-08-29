@@ -1,0 +1,12 @@
+name: StarryTown
+version: '${project.version}'
+main: me.mical.starrytown.StarryTown
+api-version: 1.19
+authors: [ Mical ]
+depend:
+  - Vault
+softdepend:
+  - CMI
+commands:
+  starrytown:
+    usage: "/starrytown ?"
