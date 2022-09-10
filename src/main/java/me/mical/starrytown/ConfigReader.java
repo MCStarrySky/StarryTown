@@ -3,11 +3,13 @@ package me.mical.starrytown;
 import me.mical.starrytown.data.Invitation;
 import me.mical.starrytown.data.Member;
 import me.mical.starrytown.data.Town;
+import me.mical.starrytown.util.ItemUtil;
 import me.mical.starrytown.util.LocaleUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +79,7 @@ public class ConfigReader {
             final List<File> files = getData("towns");
             for (final File file : files) {
                 final YamlConfiguration data = YamlConfiguration.loadConfiguration(file);
-                if (!(data.contains("name") && data.contains("Owner") && data.contains("Timestamp") && data.contains("Economy") && data.contains("Member") && data.contains("Invitation"))) {
+                if (!(data.contains("Name") && data.contains("Owner") && data.contains("Timestamp") && data.contains("Economy") && data.contains("Member"))) {
                     continue;
                 }
                 final String name = data.getString("Name");
@@ -85,6 +87,7 @@ public class ConfigReader {
                 final UUID owner = UUID.fromString(Objects.requireNonNull(data.getString("Owner")));
                 final long timestamp = data.getLong("Timestamp");
                 final double economy = data.getDouble("Economy");
+                final String residence = data.getString("Residence", null);
                 final List<Member> member = new ArrayList<>();
                 final List<Invitation> invitation = new ArrayList<>();
                 for (final String key : Objects.requireNonNull(data.getConfigurationSection("Member")).getKeys(false)) {
@@ -106,24 +109,39 @@ public class ConfigReader {
                     member.add(Member.builder().player(player).timestamp(joinTimestamp).build());
 
                 }
-                for (final String key : Objects.requireNonNull(data.getConfigurationSection("Invitation")).getKeys(false)) {
-                    final ConfigurationSection section = data.getConfigurationSection("Invitation." + key);
-                    assert section != null;
-                    if (!section.contains("Timestamp")) {
-                        continue;
+                if (data.getConfigurationSection("Invitation") != null) {
+                    for (final String key : Objects.requireNonNull(data.getConfigurationSection("Invitation")).getKeys(false)) {
+                        final ConfigurationSection section = data.getConfigurationSection("Invitation." + key);
+                        assert section != null;
+                        if (!section.contains("Timestamp")) {
+                            continue;
+                        }
+                        final UUID player;
+                        try {
+                            player = UUID.fromString(key);
+                        } catch (final IllegalArgumentException ignored) {
+                            continue;
+                        }
+                        if (Bukkit.getOnlinePlayers().stream().noneMatch(offlinePlayer -> offlinePlayer.getUniqueId().equals(player))) {
+                            continue;
+                        }
+                        final String reason = section.getString("Reason", "这个人没有说明原因.");
+                        final long time = section.getLong("Timestamp");
+                        invitation.add(Invitation.builder().player(player).reason(reason).timestamp(time).build());
                     }
-                    final UUID player;
-                    try {
-                        player = UUID.fromString(key);
-                    } catch (final IllegalArgumentException ignored) {
-                        continue;
+                }
+                final Map<Integer, ItemStack> items = new HashMap<>();
+                if (data.getConfigurationSection("Items") != null) {
+                    for (final String key : Objects.requireNonNull(data.getConfigurationSection("Items")).getKeys(false)) {
+                        try {
+                            final String content = data.getString("Items." + key);
+                            final int slot = Integer.parseInt(key);
+                            final ItemStack stack = ItemUtil.deserializeItems(content)[0];
+                            items.put(slot, stack);
+                        } catch (Throwable e) {
+                            e.printStackTrace();
+                        }
                     }
-                    if (Bukkit.getOnlinePlayers().stream().noneMatch(offlinePlayer -> offlinePlayer.getUniqueId().equals(player))) {
-                        continue;
-                    }
-                    final String reason = section.getString("Reason", "这个人没有说明原因.");
-                    final long time = section.getLong("Timestamp");
-                    invitation.add(Invitation.builder().player(player).reason(reason).timestamp(time).build());
                 }
                 TOWNS.put(uuid, Town.builder()
                         .name(name)
@@ -131,8 +149,10 @@ public class ConfigReader {
                         .owner(owner)
                         .timestamp(timestamp)
                         .economy(economy)
+                        .residence(residence)
                         .member(member)
                         .invitation(invitation)
+                        .items(items)
                         .build());
             }
             if (TOWNS.size() > 0) {
@@ -160,7 +180,14 @@ public class ConfigReader {
                 data.set("Name", town.getName());
                 data.set("Owner", town.getOwner().toString());
                 data.set("Timestamp", town.getTimestamp());
+                data.set("Economy", town.getEconomy());
+                data.set("Residence", town.getResidence());
                 town.getMember().forEach(member -> data.set("Member." + member.getPlayer().toString() + ".Timestamp", member.getTimestamp()));
+                town.getInvitation().forEach(invitation -> {
+                    data.set("Invitation." + invitation.getPlayer() + ".Reason", invitation.getReason());
+                    data.set("Invitation." + invitation.getTimestamp() + ".Timestamp", invitation.getTimestamp());
+                });
+                town.getItems().forEach((slot, itemStack) -> data.set("Items." + slot, ItemUtil.serializeItems(new ItemStack[]{itemStack})));
                 try {
                     data.save(file);
                 } catch (IOException e) {

@@ -102,6 +102,21 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                         LocaleUtil.send(sender, "该命令只能由玩家发出!");
                     }
                     break;
+                case "get":
+                    if (sender instanceof Player) {
+                        p = (Player) sender;
+                        double has = StarryTown.getEconomy().getBalance(p);
+                        if (has >= 1000) {
+                            StarryTown.getEconomy().withdrawPlayer(p, 1000);
+                            p.getInventory().addItem(Items.TOWN_CREATE_PAPER).forEach((integer, itemStack) -> p.getWorld().dropItem(p.getLocation(), itemStack));
+                            LocaleUtil.send(p, "你已成功购买一张聚落创建凭证! 手持输入 <green>/starrytown create <名字> <white>来创建!");
+                        } else {
+                            LocaleUtil.send(p, "你的金钱不足!");
+                        }
+                    } else {
+                        LocaleUtil.send(sender, "该命令只能由玩家发出!");
+                    }
+                    break;
                 case "create":
                     if (sender instanceof Player) {
                         p = (Player) sender;
@@ -128,8 +143,10 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                                                 .owner(p.getUniqueId())
                                                 .timestamp(time)
                                                 .economy(0.0D)
+                                                .residence(null)
                                                 .member(member)
-                                                .invitation(new ArrayList<>()).build();
+                                                .invitation(new ArrayList<>())
+                                                .items(new HashMap<>()).build();
                                         ConfigReader.TOWNS.put(town.getUuid(), town);
                                         LocaleUtil.send(p, "已创建聚落 <green>" + town.getName() + " <white>(<red>" + town.getUuid().toString() + "<white>).");
                                         p.openInventory(new TownInfoInventory(town, p).getInventory());
@@ -236,7 +253,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         if (args.length > 0) {
             if (args.length == 1) {
                 final List<String> arrayList = new ArrayList<>();
-                for (final String cmd : Arrays.asList("reload", "create", "confirm", "my", "help", "join", "economy")) {
+                for (final String cmd : Arrays.asList("reload", "create", "confirm", "my", "help", "join", "economy", "get")) {
                     if (cmd.startsWith(args[0])) {
                         if (cmd.equalsIgnoreCase("reload")) {
                             if (sender.isOp()) {
@@ -275,6 +292,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
     private static void sendHelp(final CommandSender sender) {
         LocaleUtil.send(sender, "Starry Town 插件命令帮助");
         LocaleUtil.send(sender, "/starrytown help <yellow>--- <green>查看此帮助页面.");
+        LocaleUtil.send(sender, "/starrytown get <yellow>--- <green>花费 $1000 来购买一张聚落创建凭证.");
         LocaleUtil.send(sender, "/starrytown create <名字> <yellow>--- <green>创建一个聚落.");
         LocaleUtil.send(sender, "/starrytown join <名字> <理由><yellow>--- <green>发送聚落加入申请.");
         LocaleUtil.send(sender, "/starrytown my <yellow>--- <green>查看你所在聚落的详情信息.");

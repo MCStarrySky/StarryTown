@@ -5,8 +5,11 @@ api-version: 1.19
 authors: [ Mical ]
 depend:
   - Vault
+  - Residence
 softdepend:
   - CMI
 commands:
   starrytown:
-    usage: "/starrytown ?"
+    usage: "/starrytown help"
+    aliases:
+      - town

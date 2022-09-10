@@ -1,6 +1,9 @@
 package me.mical.starrytown.inventory;
 
+import com.bekvon.bukkit.residence.api.ResidenceApi;
+import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import dev.lone.itemsadder.api.CustomStack;
+import me.mical.starrytown.ConfigReader;
 import me.mical.starrytown.StarryTown;
 import me.mical.starrytown.data.Cache;
 import me.mical.starrytown.data.Town;
@@ -8,6 +11,7 @@ import me.mical.starrytown.inventory.holder.InventoryExecutor;
 import me.mical.starrytown.util.ItemBuilder;
 import me.mical.starrytown.util.LocaleUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -40,7 +44,13 @@ public class TownInfoInventory implements InventoryExecutor {
     public void e(InventoryClickEvent e) {
         final Player user = (Player) e.getWhoClicked();
         switch (e.getSlot()) {
-            case 22:
+            case 0:
+                if (town.getInvitation().size() > 0) {
+                    user.closeInventory();
+                    user.openInventory(new InvitationInfoInventory(town).getInventory());
+                }
+                break;
+            case 11:
                 if (e.isRightClick()) {
                     user.closeInventory();
                     final String action = town.isOwner(p.getUniqueId()) ? "解散" : "退出";
@@ -59,11 +69,52 @@ public class TownInfoInventory implements InventoryExecutor {
                     user.openInventory(new MemberInfoInventory(town, p).getInventory());
                 }
                 break;
-            case 31:
-                user.closeInventory();
-                user.openInventory(new InvitationInfoInventory(town).getInventory());
+            case 13:
+                if (e.isLeftClick()) {
+                    user.closeInventory();
+                    user.openInventory(new GlobalChestInventory(town).getInventory());
+                }
                 break;
-            case 49:
+            case 15:
+                user.closeInventory();
+                if (town.isOwner(user.getUniqueId())) {
+                    if (e.isLeftClick()) {
+                        final Location block = user.getLocation().clone().add(0, -1, 0);
+                        final ClaimedResidence res = ResidenceApi.getResidenceManager().getByLoc(block);
+                        if (res == null) {
+                            LocaleUtil.send(user, "你脚下没有领地!");
+                            return;
+                        }
+                        if (!res.isOwner(user)) {
+                            LocaleUtil.send(user, "你不是你脚下领地的所有者!");
+                            return;
+                        }
+                        town.getMember().stream().filter(member -> member.getPlayer() == user.getUniqueId()).forEach(member -> user.performCommand("res padd " + res.getName() + " " + Bukkit.getOfflinePlayer(member.getPlayer()).getName()));
+                        town.setResidence(res.getName());
+                        ConfigReader.TOWNS.put(town.getUuid(), town);
+                        LocaleUtil.send(user, "已设置!");
+                    } else {
+                        final ClaimedResidence res = ResidenceApi.getResidenceManager().getByName(town.getResidence());
+                        if (res == null) {
+                            LocaleUtil.send(user, "暂未设置!");
+                            return;
+                        }
+                        res.tpToResidence(user, user, false);
+                        LocaleUtil.send(user, "已传送!");
+                    }
+                } else {
+                    if (e.isLeftClick()) {
+                        final ClaimedResidence res = ResidenceApi.getResidenceManager().getByName(town.getResidence());
+                        if (res == null) {
+                            LocaleUtil.send(user, "你的聚落暂时没有设置领地.");
+                            return;
+                        }
+                        res.tpToResidence(user, user, false);
+                        LocaleUtil.send(user, "已传送!");
+                    }
+                }
+                break;
+            case 22:
                 if (e.isLeftClick()) {
                     user.closeInventory();
                 }
@@ -107,7 +158,31 @@ public class TownInfoInventory implements InventoryExecutor {
                     .amount(town.getInvitation().size())
                     .build();
             inv.setItem(0, invitation);
+        } else {
+            inv.setItem(0, ItemBuilder.builder(Material.BLACK_STAINED_GLASS_PANE).build());
         }
+        final ItemStack chest = ItemBuilder.builder(Material.CHEST)
+                .name("&f查看公共箱子")
+                .amount(1)
+                .build();
+        inv.setItem(13, chest);
+        final String[] res = {
+                "",
+                " &7领地信息 ▶",
+                "   &7名称: &f" + (town.getResidence() == null ? "&c暂未设置" : town.getResidence()),
+                ""
+        };
+        final List<String> resLore = Arrays.stream(res).map(LocaleUtil::color).collect(Collectors.toList());
+        if (town.isOwner(p.getUniqueId())) {
+            resLore.add("   &a▶ &f左键以设置聚落领地为脚下领地");
+            resLore.add("   &b▶ &f右键以传送到这个领地");
+        } else {
+            resLore.add("   &a▶ &f左键以传送到这个领地");
+        }
+        resLore.add(" ");
+        inv.setItem(15, ItemBuilder.builder(Material.WOODEN_HOE)
+                .name("&f领地")
+                .lore(resLore).build());
         if (StarryTown.getInstance().getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
             final CustomStack close = CustomStack.getInstance("icon_cancel");
             if (close != null) {
@@ -127,6 +202,6 @@ public class TownInfoInventory implements InventoryExecutor {
     }
 
     private int[] getFrame() {
-        return new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 19, 20, 21, 23, 24, 25, 26};
+        return new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 19, 20, 21, 23, 24, 25, 26};
     }
 }
