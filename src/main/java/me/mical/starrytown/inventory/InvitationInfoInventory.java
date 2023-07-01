@@ -1,6 +1,5 @@
 package me.mical.starrytown.inventory;
 
-import dev.lone.itemsadder.api.CustomStack;
 import me.mical.starrytown.ConfigReader;
 import me.mical.starrytown.StarryTown;
 import me.mical.starrytown.data.Cache;
@@ -107,6 +106,7 @@ public class InvitationInfoInventory implements InventoryExecutor {
                 inv.setItem(i, info);
             }
         }
+        /*
         if (StarryTown.getInstance().getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
             final CustomStack close = CustomStack.getInstance("icon_cancel");
             if (close != null) {
@@ -116,6 +116,8 @@ public class InvitationInfoInventory implements InventoryExecutor {
         } else {
             inv.setItem(49, ItemBuilder.builder(Material.RED_STAINED_GLASS_PANE).name("&c关闭").build());
         }
+         */
+        inv.setItem(49, ItemBuilder.builder(Material.RED_STAINED_GLASS_PANE).name("&c关闭").build());
         return inv;
     }
 

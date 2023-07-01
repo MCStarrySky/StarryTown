@@ -4,13 +4,11 @@ import lombok.Getter;
 import me.mical.starrytown.command.CommandHandler;
 import me.mical.starrytown.listener.InventoryListener;
 import me.mical.starrytown.listener.PlayerListener;
-import me.mical.starrytown.listener.ResidenceListener;
 import me.mical.starrytown.task.AutoRefresher;
 import me.mical.starrytown.util.LocaleUtil;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class StarryTown extends JavaPlugin {
@@ -18,14 +16,15 @@ public final class StarryTown extends JavaPlugin {
     @Getter
     private static StarryTown instance;
     public static BukkitAudiences adventure;
-    @Getter
-    private static Economy economy;
+    // @Getter
+    // private static Economy economy;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
         instance = this;
         adventure = BukkitAudiences.create(this);
+        /*
         if (setupEconomy()) {
             LocaleUtil.send(getServer().getConsoleSender(), "已挂钩 <green>Vault<gray>.");
         } else {
@@ -33,10 +32,11 @@ public final class StarryTown extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+         */
         ConfigReader.loadConfig();
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerListener(), this);
-        getServer().getPluginManager().registerEvents(new ResidenceListener(), this);
+        // getServer().getPluginManager().registerEvents(new ResidenceListener(), this);
         final PluginCommand cmd = getServer().getPluginCommand("starrytown");
         if (cmd != null) {
             cmd.setExecutor(new CommandHandler());
@@ -49,9 +49,12 @@ public final class StarryTown extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        getServer().getAsyncScheduler().cancelTasks(this);
         ConfigReader.Towns.export();
         LocaleUtil.send(getServer().getConsoleSender(), "插件已经停止.");
     }
+
+    /*
 
     private boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
@@ -64,4 +67,5 @@ public final class StarryTown extends JavaPlugin {
         }
         return false;
     }
+     */
 }

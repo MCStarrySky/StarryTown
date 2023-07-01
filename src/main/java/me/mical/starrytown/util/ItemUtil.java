@@ -1,7 +1,7 @@
 package me.mical.starrytown.util;
 
 import net.minecraft.nbt.*;
-import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
@@ -69,7 +69,7 @@ public final class ItemUtil {
         org.bukkit.inventory.ItemStack[] itemStacks = new org.bukkit.inventory.ItemStack[nbtTagList.size()];
         for (int i = 0; i < nbtTagList.size(); i++) {
             NBTTagCompound nbtTagCompound = (NBTTagCompound) nbtTagList.get(i);
-            if (!nbtTagCompound.f()) {
+            if (!nbtTagCompound.g()) {
                 itemStacks[i] = CraftItemStack.asCraftMirror(net.minecraft.world.item.ItemStack.a(nbtTagCompound));
             }
         }

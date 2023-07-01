@@ -1,9 +1,6 @@
 package me.mical.starrytown.inventory;
 
-import com.bekvon.bukkit.residence.api.ResidenceApi;
-import com.bekvon.bukkit.residence.protection.ClaimedResidence;
-import dev.lone.itemsadder.api.CustomStack;
-import me.mical.starrytown.ConfigReader;
+import com.mcstarrysky.languageutils.LanguageUtils;
 import me.mical.starrytown.StarryTown;
 import me.mical.starrytown.data.Cache;
 import me.mical.starrytown.data.Town;
@@ -11,17 +8,17 @@ import me.mical.starrytown.inventory.holder.InventoryExecutor;
 import me.mical.starrytown.util.ItemBuilder;
 import me.mical.starrytown.util.LocaleUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -57,13 +54,9 @@ public class TownInfoInventory implements InventoryExecutor {
                     LocaleUtil.send(user, "你是否要" + action + "聚落 <green>" + town.getName() + "<white>? 这将永远无法恢复!");
                     LocaleUtil.send(user, "请在20秒内输入 <green>/starrytown confirm<white> 来确认!");
                     Cache.REMOVE_CACHE.put(user.getUniqueId(), town.getUuid());
-                    new BukkitRunnable() {
-
-                        @Override
-                        public void run() {
-                            Cache.REMOVE_CACHE.remove(user.getUniqueId());
-                        }
-                    }.runTaskLaterAsynchronously(StarryTown.getInstance(), 20L * 20L);
+                    Bukkit.getAsyncScheduler().runDelayed(StarryTown.getInstance(), task -> {
+                        Cache.REMOVE_CACHE.remove(user.getUniqueId());
+                    }, 20L, TimeUnit.SECONDS);
                 } else if (e.isLeftClick()) {
                     user.closeInventory();
                     user.openInventory(new MemberInfoInventory(town, p).getInventory());
@@ -75,6 +68,7 @@ public class TownInfoInventory implements InventoryExecutor {
                     user.openInventory(new GlobalChestInventory(town).getInventory());
                 }
                 break;
+                /*
             case 15:
                 user.closeInventory();
                 if (town.isOwner(user.getUniqueId())) {
@@ -114,6 +108,7 @@ public class TownInfoInventory implements InventoryExecutor {
                     }
                 }
                 break;
+                 */
             case 22:
                 if (e.isLeftClick()) {
                     user.closeInventory();
@@ -145,13 +140,14 @@ public class TownInfoInventory implements InventoryExecutor {
                 ""
         };
         // frame 0 1 0 1 0 1 0 frame
+        // frame 0 0 1 0 1 0 0 frame
         final String action = town.isOwner(p.getUniqueId()) ? "解散" : "退出";
         final List<String> lore = Arrays.stream(loreFormat).map(s -> LocaleUtil.color(s).replace("{action}", action)).collect(Collectors.toList());
         final ItemStack info = ItemBuilder.builder(Material.BLACK_BED)
                 .name("&f" + town.getName())
                 .lore(lore)
                 .build();
-        inv.setItem(11, info);
+        inv.setItem(12, info);
         if (town.getInvitation().size() > 0) {
             final ItemStack invitation = ItemBuilder.builder(Material.OAK_SIGN)
                     .name("&f查看加入申请")
@@ -161,11 +157,31 @@ public class TownInfoInventory implements InventoryExecutor {
         } else {
             inv.setItem(0, ItemBuilder.builder(Material.BLACK_STAINED_GLASS_PANE).build());
         }
-        final ItemStack chest = ItemBuilder.builder(Material.CHEST)
+        final ItemBuilder chest = ItemBuilder.builder(Material.CHEST)
                 .name("&f查看公共箱子")
-                .amount(1)
-                .build();
-        inv.setItem(13, chest);
+                .amount(1);
+        final String[] chestLoreFormat = {
+                "",
+                " &7箱子内容 ▶",
+        };
+        final List<ItemStack> chestContent = new ArrayList<>(town.getItems().values());
+        final List<String> chestLore = Arrays.stream(chestLoreFormat).map(LocaleUtil::color).collect(Collectors.toList());
+        int j = 0;
+        while (j < 5) {
+            if ((j + 1) > chestContent.size()) {
+                break;
+            }
+            // 石头 * 1
+            final ItemStack item = chestContent.get(j);
+            final String i18n = LanguageUtils.getName(p, item);
+            final String name = item.getItemMeta() != null ? item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : i18n : i18n;
+            chestLore.add("   &7" + name + " &a* " + item.getAmount());
+            j++;
+        }
+        chestLore.add("");
+        chest.lore(chestLore);
+        inv.setItem(14, chest.build());
+        /*
         final String[] res = {
                 "",
                 " &7领地信息 ▶",
@@ -183,6 +199,8 @@ public class TownInfoInventory implements InventoryExecutor {
         inv.setItem(15, ItemBuilder.builder(Material.WOODEN_HOE)
                 .name("&f领地")
                 .lore(resLore).build());
+         */
+        /*
         if (StarryTown.getInstance().getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
             final CustomStack close = CustomStack.getInstance("icon_cancel");
             if (close != null) {
@@ -192,6 +210,8 @@ public class TownInfoInventory implements InventoryExecutor {
         } else {
             inv.setItem(22, ItemBuilder.builder(Material.RED_STAINED_GLASS_PANE).name("&c关闭").build());
         }
+         */
+        inv.setItem(22, ItemBuilder.builder(Material.RED_STAINED_GLASS_PANE).name("&c关闭").build());
         return inv;
     }
 

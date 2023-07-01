@@ -6,7 +6,7 @@
 
     <groupId>me.mical</groupId>
     <artifactId>StarryTown</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>StarryTown</name>
@@ -54,7 +54,7 @@
 
     <repositories>
         <repository>
-            <id>spigotmc-repo</id>
+            <id>papermc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
         <repository>
@@ -65,13 +65,17 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>tabooproject-repo</id>
+            <url>https://repo.tabooproject.org/repository/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.19.2-R0.1-SNAPSHOT</version>
+            <groupId>dev.folia</groupId>
+            <artifactId>folia-api</artifactId>
+            <version>1.20.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -95,28 +99,21 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.LoneDev6</groupId>
-            <artifactId>api-itemsadder</artifactId>
-            <version>3.0.0</version>
+            <version>1.18.26</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ink.ptms.core</groupId>
-            <artifactId>v11900</artifactId>
-            <version>11900-minimize</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}/libs/v11900-11900-minimize-universal.jar</systemPath>
+            <artifactId>v12001</artifactId>
+            <version>12001-minimize</version>
+            <classifier>universal</classifier>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>res</groupId>
-            <artifactId>res</artifactId>
-            <version>v5</version>
-            <scope>system</scope>
-            <systemPath>${pom.basedir}/libs/Residence5.0.2.0.jar</systemPath>
+            <groupId>com.mcstarrysky</groupId>
+            <artifactId>LanguageUtils</artifactId>
+            <version>1.0.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.MilkBowl</groupId>

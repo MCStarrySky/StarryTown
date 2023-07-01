@@ -1,7 +1,6 @@
 package me.mical.starrytown.command;
 
 import me.mical.starrytown.ConfigReader;
-import me.mical.starrytown.StarryTown;
 import me.mical.starrytown.data.Cache;
 import me.mical.starrytown.data.Invitation;
 import me.mical.starrytown.data.Member;
@@ -105,6 +104,13 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                 case "get":
                     if (sender instanceof Player) {
                         p = (Player) sender;
+                        if (p.isOp()) {
+                            p.getInventory().addItem(Items.TOWN_CREATE_PAPER).forEach((integer, itemStack) -> p.getWorld().dropItem(p.getLocation(), itemStack));
+                            LocaleUtil.send(p, "你已成功获取一张聚落创建凭证! 手持输入 <green>/starrytown create <名字> <white>来创建!");
+                        } else {
+                            LocaleUtil.send(p, "你没有权限这样做!");
+                        }
+                        /*
                         double has = StarryTown.getEconomy().getBalance(p);
                         if (has >= 1000) {
                             StarryTown.getEconomy().withdrawPlayer(p, 1000);
@@ -113,6 +119,8 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                         } else {
                             LocaleUtil.send(p, "你的金钱不足!");
                         }
+
+                         */
                     } else {
                         LocaleUtil.send(sender, "该命令只能由玩家发出!");
                     }
@@ -176,6 +184,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                 case "help":
                     sendHelp(sender);
                     break;
+                    /*
                 case "economy":
                     if (sender instanceof Player) {
                         p = (Player) sender;
@@ -239,6 +248,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                         LocaleUtil.send(sender, "该命令只能由玩家发出!");
                     }
                     break;
+                     */
                 default:
                     LocaleUtil.send(sender, "未知命令, 请检查你输入的命令是否正确.");
                     break;
@@ -253,7 +263,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         if (args.length > 0) {
             if (args.length == 1) {
                 final List<String> arrayList = new ArrayList<>();
-                for (final String cmd : Arrays.asList("reload", "create", "confirm", "my", "help", "join", "economy", "get")) {
+                for (final String cmd : Arrays.asList("reload", "create", "confirm", "my", "help", "join", "get")) {
                     if (cmd.startsWith(args[0])) {
                         if (cmd.equalsIgnoreCase("reload")) {
                             if (sender.isOp()) {
@@ -277,6 +287,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                         return Collections.singletonList("<理由>");
                 }
             }
+            /*
             if (args[0].equalsIgnoreCase("economy")) {
                 switch (args.length) {
                     case 2:
@@ -285,6 +296,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                         return Collections.singletonList("<金额>");
                 }
             }
+             */
         }
         return null;
     }
@@ -292,11 +304,11 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
     private static void sendHelp(final CommandSender sender) {
         LocaleUtil.send(sender, "Starry Town 插件命令帮助");
         LocaleUtil.send(sender, "/starrytown help <yellow>--- <green>查看此帮助页面.");
-        LocaleUtil.send(sender, "/starrytown get <yellow>--- <green>花费 $1000 来购买一张聚落创建凭证.");
+        LocaleUtil.send(sender, "/starrytown get <yellow>--- <green>获取一张聚落创建凭证.");
         LocaleUtil.send(sender, "/starrytown create <名字> <yellow>--- <green>创建一个聚落.");
         LocaleUtil.send(sender, "/starrytown join <名字> <理由><yellow>--- <green>发送聚落加入申请.");
         LocaleUtil.send(sender, "/starrytown my <yellow>--- <green>查看你所在聚落的详情信息.");
-        LocaleUtil.send(sender, "/starrytown economy add <amount> <yellow>--- <green>向你所在聚落捐献金钱.");
+        // LocaleUtil.send(sender, "/starrytown economy add <amount> <yellow>--- <green>向你所在聚落捐献金钱.");
         LocaleUtil.send(sender, "/starrytown economy take <amount> <yellow>--- <green>申请从你所在聚落账户中划款.");
         if (sender.isOp()) {
             LocaleUtil.send(sender, "/starrytown reload <yellow>--- <green>重新载入插件.");

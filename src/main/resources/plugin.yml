@@ -3,11 +3,7 @@ version: '${project.version}'
 main: me.mical.starrytown.StarryTown
 api-version: 1.19
 authors: [ Mical ]
-depend:
-  - Vault
-  - Residence
-softdepend:
-  - CMI
+folia-supported: true
 commands:
   starrytown:
     usage: "/starrytown help"
